@@ -2,6 +2,7 @@ package com.example.wallpaperjetpack
 
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -39,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    StartScreen("Android")
+                    StartScreen()
                 }
             }
         }
@@ -47,19 +48,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun StartScreen(name: String) {
+fun StartScreen() {
     val context = LocalContext.current
-    val collections = listOf("Hello", "this", "is", "a", "test")
+    val collections = listOf("Abstract Reality", "Beautiful Diversity",
+        "Beautiful Earth", "Classical Biomes", "Divine Emotions",
+        "Dreamscapes", "Entropy Earth", "Fingerprint Earth", "Harmony of Hues",
+        "Intimate Earth", "Look of the Wild", "On the Road Again", "Opposites Attract",
+        "Seasons of Time", "Vivid Psalms", "Water Birds")
 
-    LazyColumn(){
-        for (collection in collections){
-            card(text = collection, resid = R.drawable.ic_opp)
+    LazyColumn() {
+        items(collections.size) { index ->
+            card(text = collections[index], R.drawable.ic_opp)
         }
     }
+}
 
     //SimpleButton {setWallpaper(R.drawable.ic_opp, context)}
-
-}
 
 
 fun setWallpaper(resid: Int, context: Context){
@@ -76,7 +80,7 @@ fun SimpleButton(func: () -> Unit) {
     val context = LocalContext.current
     Button(onClick = {
         func()
-        Toast.makeText(context, "Wallpaper Set Successfully", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, Resources.getSystem().getString(R.string.sucess_msg), Toast.LENGTH_SHORT).show()
     }, modifier = Modifier.size(50.dp, 50.dp)) {
         Text(text = "Simple Button")
     }
@@ -92,13 +96,14 @@ fun card(text: String, resid: Int){
                 text = text,
                 Modifier
                     .fillMaxWidth(0.6f)
-                    .padding(vertical = 45.dp),
+                    .padding(vertical = 30.dp)
+                    .padding(horizontal = 15.dp),
                 textAlign = TextAlign.Center,
                 fontSize = 30.sp
             )
             Image(
                 painter = painterResource(id = resid),
-                contentDescription = "Collection Picture",
+                contentDescription = Resources.getSystem().getString(R.string.image_desc),
                 modifier = Modifier
                     .padding(5.dp)
                     .clip(RoundedCornerShape(10.dp))
@@ -111,6 +116,6 @@ fun card(text: String, resid: Int){
 @Composable
 fun DefaultPreview() {
     WallpaperjetpackTheme {
-        card("hello", R.drawable.ic_opp)
+        StartScreen()
     }
 }

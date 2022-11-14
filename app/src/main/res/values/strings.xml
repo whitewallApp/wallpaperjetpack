@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">wallpaperjetpack</string>
-    <string name="testing">Hello</string>
+    <string name="image_desc">Collection Image</string>
+    <string name="sucess_msg">Wallpaper set Successfully</string>
 </resources>
