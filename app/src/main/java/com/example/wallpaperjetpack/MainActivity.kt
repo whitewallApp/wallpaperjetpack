@@ -3,29 +3,41 @@ package com.example.wallpaperjetpack
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
+import android.provider.Settings.Global.getString
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getDrawable
 import com.example.wallpaperjetpack.ui.theme.WallpaperjetpackTheme
 import java.io.IOException
 
@@ -77,27 +89,36 @@ fun setWallpaper(resid: Int, context: Context){
 }
 
 @Composable
-fun SimpleButton(func: () -> Unit) {
+fun SimpleButton(func: () -> Unit, buttonText: String) {
     val context = LocalContext.current
     Button(onClick = {
         func()
         Toast.makeText(context, Resources.getSystem().getString(R.string.sucess_msg), Toast.LENGTH_SHORT).show()
     }, modifier = Modifier.size(50.dp, 50.dp)) {
-        Text(text = "Simple Button")
+        Text(text = buttonText)
     }
 }
 
 
 @Composable
 fun card(text: String, resid: Int){
+    val grad = Brush.horizontalGradient(
+        colors = listOf(
+            MaterialTheme.colors.primary,
+            MaterialTheme.colors.primaryVariant
+        )
+    )
+
+    val checkedState = remember { mutableStateOf(true) }
     val context = LocalContext.current
+
     Card(shape = RoundedCornerShape(10.dp), modifier = Modifier
         .fillMaxWidth()
         .padding(20.dp),
-        onClick = {
-            Toast.makeText(context, "Clicked $text", Toast.LENGTH_SHORT).show()
+        ) {
+        Row(modifier = Modifier.background(grad).clickable {
+            Toast.makeText(context, "This is $text", Toast.LENGTH_SHORT).show()
         }) {
-        Row() {
             Text(
                 text = text,
                 Modifier
@@ -109,11 +130,12 @@ fun card(text: String, resid: Int){
             )
             Image(
                 painter = painterResource(id = resid),
-                contentDescription = Resources.getSystem().getString(R.string.image_desc),
+                contentDescription = "Collection Image",
                 modifier = Modifier
                     .padding(5.dp)
                     .clip(RoundedCornerShape(10.dp))
             )
+
         }
     }
 }
