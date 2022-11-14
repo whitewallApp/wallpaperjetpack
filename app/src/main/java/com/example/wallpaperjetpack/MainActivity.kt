@@ -86,11 +86,16 @@ fun SimpleButton(func: () -> Unit) {
     }
 }
 
+
 @Composable
 fun card(text: String, resid: Int){
+    val context = LocalContext.current
     Card(shape = RoundedCornerShape(10.dp), modifier = Modifier
         .fillMaxWidth()
-        .padding(20.dp)) {
+        .padding(20.dp),
+        onClick = {
+            Toast.makeText(context, "Clicked $text", Toast.LENGTH_SHORT).show()
+        }) {
         Row() {
             Text(
                 text = text,
