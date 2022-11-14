@@ -59,7 +59,7 @@ fun StartScreen() {
     LazyColumn() {
         items(collections.size) { index ->
             card(text = collections[index], R.drawable.ic_opp)
-            SimpleButton {setWallpaper(R.drawable.ic_opp, context)}
+            //SimpleButton {setWallpaper(R.drawable.ic_opp, context)}
         }
     }
 }
