@@ -38,8 +38,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.getDrawable
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.example.wallpaperjetpack.ui.theme.WallpaperjetpackTheme
 import java.io.IOException
+import java.util.NavigableMap
+import java.util.NavigableSet
 
 
 class MainActivity : ComponentActivity() {
@@ -52,31 +58,48 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    StartScreen()
+                    val navController = rememberNavController()
+                    Scaffold() {
+                        NavHost(navController = navController,
+                            startDestination = Screens.Start.name
+                        ){
+                                https://developer.android.com/codelabs/basic-android-kotlin-compose-navigation#3
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+enum class Screens() {
+    Start,
+    Collections
+}
+
 @Composable
 fun StartScreen() {
     val context = LocalContext.current
-    val collections = listOf("Abstract Reality", "Beautiful Diversity",
+    val collections = listOf(
+        "Abstract Reality", "Beautiful Diversity",
         "Beautiful Earth", "Classical Biomes", "Divine Emotions",
         "Dreamscapes", "Entropy Earth", "Fingerprint Earth", "Harmony of Hues",
         "Intimate Earth", "Look of the Wild", "On the Road Again", "Opposites Attract",
-        "Seasons of Time", "Vivid Psalms", "Water Birds")
+        "Seasons of Time", "Vivid Psalms", "Water Birds"
+    )
 
     LazyColumn() {
         items(collections.size) { index ->
             card(text = collections[index], R.drawable.ic_opp)
-            //SimpleButton {setWallpaper(R.drawable.ic_opp, context)}
         }
     }
 }
 
-    //SimpleButton {setWallpaper(R.drawable.ic_opp, context)}
+@Composable
+fun imageScreen(collection: String){
+    SimpleButton(func = { /*TODO*/ }, buttonText = "$collection")
+}
+
 
 
 fun setWallpaper(resid: Int, context: Context){
@@ -108,17 +131,17 @@ fun card(text: String, resid: Int){
             MaterialTheme.colors.primaryVariant
         )
     )
-
-    val checkedState = remember { mutableStateOf(true) }
     val context = LocalContext.current
 
     Card(shape = RoundedCornerShape(10.dp), modifier = Modifier
         .fillMaxWidth()
         .padding(20.dp),
         ) {
-        Row(modifier = Modifier.background(grad).clickable {
-            Toast.makeText(context, "This is $text", Toast.LENGTH_SHORT).show()
-        }) {
+        Row(modifier = Modifier
+            .background(grad)
+            .clickable {
+
+            }) {
             Text(
                 text = text,
                 Modifier
