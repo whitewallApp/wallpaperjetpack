@@ -4,6 +4,7 @@ import android.app.WallpaperManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -34,6 +35,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.example.wallpaperjetpack.ui.theme.WallpaperjetpackTheme
 import java.io.IOException
 
@@ -138,7 +143,7 @@ fun StartScreen(cardClick: (input: String) -> Unit) {
 @Composable
 fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Unit, prefs: SharedPreferences){
 
-    //val context = LocalContext.current
+    val context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     val time = remember { mutableStateOf(if (prefs.getString("collection", "none") == collection) prefs.getString("time", "Never") else "Never") }
     val timeZones = listOf(
@@ -214,18 +219,18 @@ fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Uni
                 } }, size = 40.dp, prefs = prefs, collection = collection)
         }
 
-        //    val url = "http://seekingzionorg.ipage.com/thebeautifulai/wp-content/uploads/2022/09/home_hero-1054x1536.png"
-        //    val queue = Volley.newRequestQueue(context);
-        //    //var rtnArray = remember { mutableStateOf(arrayOf<T>()) }
-        //
-        //    val request = StringRequest(Request.Method.GET, url,
-        //        { response ->
-        //           Log.e("MSG", response.toString())
-        //        },
-        //        Response.ErrorListener {
-        //
-        //        })
-        //    queue.add(request)
+            val url = "https://jsonplaceholder.typicode.com/users"
+            val queue = Volley.newRequestQueue(context);
+            //var rtnArray = remember { mutableStateOf(arrayOf<T>()) }
+            Log.e("MSG", "Sent")
+            val request = StringRequest(Request.Method.GET, url,
+                { response ->
+                    Log.e("MSG", response.toString())
+                },
+                Response.ErrorListener {
+
+                })
+            queue.add(request)
 
         Row() {
             LazyColumn() {
