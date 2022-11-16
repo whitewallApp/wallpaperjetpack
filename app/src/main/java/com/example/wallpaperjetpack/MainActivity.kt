@@ -219,7 +219,7 @@ fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Uni
                 } }, size = 40.dp, prefs = prefs, collection = collection)
         }
 
-            val url = "https://jsonplaceholder.typicode.com/users"
+            val url = "https://jsonplaceholder.typicode.com/users/1"
             val queue = Volley.newRequestQueue(context);
             //var rtnArray = remember { mutableStateOf(arrayOf<T>()) }
             Log.e("MSG", "Sent")
