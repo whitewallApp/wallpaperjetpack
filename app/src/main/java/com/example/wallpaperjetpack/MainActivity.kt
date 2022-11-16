@@ -9,11 +9,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,11 +28,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
@@ -129,41 +138,49 @@ fun imageScreen(collection: String, click: () -> Unit){
             Text(text = "Back", color = Color.White)
         }
         val expanded = remember { mutableStateOf(false) }
-        val checked = remember { mutableStateOf(false) }
 
         Row(horizontalArrangement = Arrangement.Center) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(0.85f)
+                    .padding(horizontal = 20.dp)
                     .clickable { expanded.value = true }) {
-                Text(text = "Time", modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(10.dp))
+                Row(horizontalArrangement = Arrangement.Center) {
+                    Text(text = "Change Wallpaper Every:", modifier = Modifier
+                        .padding(10.dp))
+                    Image(painter = painterResource(id = R.drawable.ic_baseline_arrow_drop_down_24), contentDescription = "hello", modifier = Modifier.padding(vertical = 8.dp).size(30.dp))
+                }
                 DropdownMenu(
                     expanded = expanded.value,
                     onDismissRequest = { expanded.value = false }) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .width(300.dp)
                             .padding(horizontal = 10.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         for (i in 0..4) {
-                            Text(
-                                text = "Option $i",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(15.dp),
-                                fontSize = 15.sp
-                            )
+                            Box(modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable { }
+                            ) {
+                                Text(
+                                    text = "Option $i",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .padding(15.dp),
+                                    fontSize = 15.sp
+                                )
+                            }
                         }
                     }
                 }
             }
-            Checkbox(checked = checked.value, onCheckedChange = {checked.value = it}, modifier = Modifier.width(500.dp)
-            )
+
+            customCheckbox(click = { /*TODO*/ }, size = 40.dp)
         }
+
 
         //    val url = "http://seekingzionorg.ipage.com/thebeautifulai/wp-content/uploads/2022/09/home_hero-1054x1536.png"
         //    val queue = Volley.newRequestQueue(context);
@@ -195,6 +212,25 @@ fun imageScreen(collection: String, click: () -> Unit){
         }
     }
 
+}
+
+@Composable
+fun customCheckbox(click: () -> Unit, size: Dp){
+    val isCheck = remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(3.dp))
+            .border(3.dp, color = MaterialTheme.colors.primary, RoundedCornerShape(3.dp))
+            .background(if (isCheck.value) MaterialTheme.colors.primary else Color.Transparent)
+            .clickable {
+                isCheck.value = !isCheck.value
+                click()
+            }
+    ) {
+        if(isCheck.value)
+            Icon(Icons.Default.Check, contentDescription = "", tint = Color.White, modifier = Modifier.size(size + 5.dp))
+    }
 }
 
 @Composable
