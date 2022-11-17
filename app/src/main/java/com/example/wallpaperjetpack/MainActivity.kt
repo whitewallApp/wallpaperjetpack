@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -65,10 +66,10 @@ class MainActivity : ComponentActivity() {
                                 StartScreen(cardClick = {name: String ->
                                     navController.navigate(Screens.Collections.name)
                                     collectionName.value = name
-                                })
+                                }, collection = collectionName.value, prefs = prefs)
                             }
                             composable(route = Screens.Collections.name){
-                                imageScreen(collection = collectionName.value, backButton = { navController.navigate(Screens.Start.name) }, prefs = prefs, cardClick = {navController.navigate(Screens.Wallpaper.name)})
+                                imageScreen(backButton = { navController.navigate(Screens.Start.name) }, cardClick = {navController.navigate(Screens.Wallpaper.name)})
                             }
                             composable(route = Screens.Wallpaper.name){
                                 wallpaperSet()
@@ -89,12 +90,15 @@ enum class Screens {
 
 @Composable
 fun wallpaperSet() {
+    val context = LocalContext.current
     Box() {
         Scaffold(
             bottomBar = {
                 BottomAppBar {
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                                  setWallpaper(context = context, resid = R.drawable.ic_opp)
+                                  },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp)
@@ -114,7 +118,7 @@ fun wallpaperSet() {
 }
 
 @Composable
-fun StartScreen(cardClick: (input: String) -> Unit) {
+fun StartScreen(cardClick: (input: String) -> Unit, prefs: SharedPreferences, collection: String) {
     //val context = LocalContext.current
     val collections = listOf(
         "Abstract Reality", "Beautiful Diversity",
@@ -132,58 +136,86 @@ fun StartScreen(cardClick: (input: String) -> Unit) {
         R.drawable.seasons, R.drawable.psalms, R.drawable.water_birds
     )
 
+    Scaffold(
+        topBar = {
+            topbar(prefs = prefs, collection = collection)
+        },
+        bottomBar = {
+            bottombar()
+        }
+    ) {
 
-    LazyColumn() {
-        items(collections.size) { index ->
-            card(text = collections[index],resids[index], cardClick)
+        LazyColumn() {
+            items(collections.size) { index ->
+                card(text = collections[index], resids[index], cardClick)
+            }
+        }
+    }
+}
+@Composable
+fun bottombar(){
+    Row(modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colors.background)) {
+        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(200.dp).padding(5.dp)) {
+            Image(painter = painterResource(id = R.drawable.ic_baseline_palette_24), contentDescription = "Ai Art", modifier = Modifier.size(40.dp))
+            Text(text = "Ai Art")
+        }
+        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(200.dp).padding(5.dp)) {
+            Image(painter = painterResource(id = R.drawable.ic_baseline_camera_alt_24), contentDescription = "Photography", modifier = Modifier.size(40.dp))
+            Text(text = "Photography")
         }
     }
 }
 
 @Composable
-fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Unit, prefs: SharedPreferences){
-
-    val context = LocalContext.current
+fun topbar(prefs: SharedPreferences, collection: String) {
+    val time = remember {
+        mutableStateOf(
+            if (prefs.getString(
+                    "collection",
+                    "none"
+                ) == collection
+            ) prefs.getString("time", "Never") else "Never"
+        )
+    }
     val expanded = remember { mutableStateOf(false) }
-    val time = remember { mutableStateOf(if (prefs.getString("collection", "none") == collection) prefs.getString("time", "Never") else "Never") }
     val timeZones = listOf(
         "Never", "Every Day", "Every Other Day", "Every Week", "Every Month"
     )
-
     Column() {
-        Button(modifier = Modifier
+        Image(painter = painterResource(id = R.drawable.logo), contentDescription = "logo", modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
-            onClick = {
-                backButton()
-            }) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_baseline_arrow_back_24),
-                contentDescription = "Back Arrow",
-                modifier = Modifier.padding(horizontal = 5.dp)
+            .padding(10.dp)
+            .clip(
+                RoundedCornerShape(5.dp)
             )
-            Text(text = "Back", color = Color.White)
-        }
-
+            .size(70.dp))
         Row(horizontalArrangement = Arrangement.Center) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth(0.85f)
+                    .fillMaxWidth()
                     .padding(horizontal = 20.dp)
+                    .padding(vertical = 10.dp)
                     .clickable { expanded.value = true }) {
                 Row(horizontalArrangement = Arrangement.Center) {
-                    Text(text = "Change Wallpaper: " + time.value, modifier = Modifier
-                        .padding(10.dp))
-                    Image(painter = painterResource(id = R.drawable.ic_baseline_arrow_drop_down_24), contentDescription = "hello", modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .size(30.dp))
+                    Text(
+                        text = stringResource(R.string.dropdownmsg) + " " + time.value,
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_baseline_arrow_drop_down_24),
+                        contentDescription = "Dropdown",
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .size(30.dp)
+                    )
                 }
                 DropdownMenu(
                     expanded = expanded.value,
                     onDismissRequest = { expanded.value = false }) {
                     Column(
                         modifier = Modifier
-                            .width(300.dp)
+                            .width(310.dp)
                             .padding(horizontal = 10.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -211,28 +243,44 @@ fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Uni
                     }
                 }
             }
-            CustomCheckbox(click = { checked: Boolean ->
-                with(prefs.edit()) {
-                    putBoolean("checked", checked)
-                    putString("collection", collection)
-                    apply()
-                } }, size = 40.dp, prefs = prefs, collection = collection)
         }
+    }
+}
+@Composable
+fun imageScreen( backButton: () -> Unit, cardClick: () -> Unit){
 
-            val url = "https://jsonplaceholder.typicode.com/users/1"
-            val queue = Volley.newRequestQueue(context);
-            //var rtnArray = remember { mutableStateOf(arrayOf<T>()) }
-            Log.e("MSG", "Sent")
-            val request = StringRequest(Request.Method.GET, url,
-                { response ->
-                    Log.e("MSG", response.toString())
-                },
-                Response.ErrorListener {
+    val context = LocalContext.current
 
-                })
-            queue.add(request)
+    Column() {
+        Button(modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+            onClick = {
+                backButton()
+            }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_baseline_arrow_back_24),
+                contentDescription = "Back Arrow",
+                modifier = Modifier.padding(horizontal = 5.dp)
+            )
+            Text(text = "Back", color = Color.White)
+        }
+            }
+//
+//            val url = "https://jsonplaceholder.typicode.com/users"
+//            val queue = Volley.newRequestQueue(context);
+//            //var rtnArray = remember { mutableStateOf(arrayOf<T>()) }
+//            Log.e("MSG", "Sent")
+//            val request = StringRequest(Request.Method.GET, url,
+//                { response ->
+//                    Log.e("MSG", response.toString())
+//                },
+//                Response.ErrorListener {
+//
+//                })
+//            queue.add(request)
 
-        Row() {
+
             LazyColumn() {
                 items(9) { index ->
                     Row() {
@@ -241,15 +289,7 @@ fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Uni
                     }
                 }
             }
-//            LazyColumn() {
-//                items(9) { index ->
-//                    imgCard({}, R.drawable.ic_opp)
-//                }
-//            }
         }
-    }
-
-}
 
 @Composable
 fun CustomCheckbox(click: (Boolean) -> Unit, size: Dp, prefs: SharedPreferences, collection: String){
@@ -321,15 +361,14 @@ fun card(text: String, resid: Int, click: (input: String) -> Unit){
                 textAlign = TextAlign.Center,
                 fontSize = 30.sp
             )
-            Box() {
                 Image(
                     painter = painterResource(id = resid),
                     contentDescription = "Collection Image",
                     modifier = Modifier
+                        .size(150.dp)
                         .padding(10.dp)
                         .clip(RoundedCornerShape(10.dp))
                 )
-            }
 
         }
     }
@@ -339,6 +378,6 @@ fun card(text: String, resid: Int, click: (input: String) -> Unit){
 @Composable
 fun DefaultPreview() {
     WallpaperjetpackTheme {
-        wallpaperSet()
+        bottombar()
     }
 }

@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Beautiful Ai</string>
-    <string name="image_desc">Collection Image</string>
+    <string name="dropdownmsg">Change Wallpaper: </string>
     <string name="sucess_msg">Wallpaper set Successfully</string>
 </resources>
