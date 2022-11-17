@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -70,7 +72,9 @@ class MainActivity : ComponentActivity() {
                                 }, collection = collectionName.value, prefs = prefs)
                             }
                             composable(route = Screens.Collections.name){
-                                imageScreen(backButton = { navController.navigate(Screens.Start.name) }, cardClick = {navController.navigate(Screens.Wallpaper.name)})
+                                imageScreen(backButton = { navController.navigate(Screens.Start.name) }, 
+                                    cardClick = {navController.navigate(Screens.Wallpaper.name)},
+                                    collection = collectionName.value)
                             }
                             composable(route = Screens.Wallpaper.name){
                                 wallpaperSet()
@@ -121,46 +125,137 @@ fun wallpaperSet() {
 @Composable
 fun StartScreen(cardClick: (input: String) -> Unit, prefs: SharedPreferences, collection: String) {
     //val context = LocalContext.current
-    val collections = listOf(
+    val collectionsArt = listOf(
         "Abstract Reality", "Beautiful Diversity",
-        "Beautiful Earth", "Classical Biomes", "Divine Emotions",
-        "Dreamscapes", "Entropy Earth", "Fingerprint Earth", "Harmony of Hues",
-        "Intimate Earth", "Look of the Wild", "On the Road Again", "Opposites Attract",
+        "Classical Biomes", "Divine Emotions",
+        "Dreamscapes", "Harmony of Hues", "Look of the Wild",
+        "On the Road Again", "Opposites Attract",
         "Seasons of Time", "Vivid Psalms", "Water Birds"
     )
 
-    val resids = listOf(
-        R.drawable.abstract_real, R.drawable.diversity,
-        R.drawable.beautiful_earth, R.drawable.biomes, R.drawable.emotions,
-        R.drawable.dreamscapes, R.drawable.entropy, R.drawable.fingerprint, R.drawable.hues,
-        R.drawable.intimate, R.drawable.wild, R.drawable.cars, R.drawable.opposites,
+    val collectionsPhoto = listOf(
+        "Beautiful Earth", "Entropy Earth", "Fingerprint Earth",
+        "Intimate Earth",
+    )
+
+    val residsPhoto = listOf(
+        R.drawable.beautiful_earth, R.drawable.entropy, R.drawable.fingerprint ,R.drawable.intimate
+    )
+
+    val residsArt = listOf(
+        R.drawable.abstract_real, R.drawable.diversity,R.drawable.biomes, R.drawable.emotions,
+        R.drawable.dreamscapes, R.drawable.hues,
+        R.drawable.wild, R.drawable.cars, R.drawable.opposites,
         R.drawable.seasons, R.drawable.psalms, R.drawable.water_birds
     )
+
+    val artContext = remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
             topbar(prefs = prefs, collection = collection)
         },
         bottomBar = {
-            bottombar()
+            bottombar(artContext)
         }
     ) {
 
-        LazyColumn() {
-            items(collections.size) { index ->
-                card(text = collections[index], resids[index], cardClick)
+        LazyColumn(modifier = Modifier
+            .height(630.dp)
+            .padding(vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (artContext.value) {
+                items(collectionsArt.size / 2) { index ->
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)) {
+
+                        card(text = collectionsArt[index * 2], residsArt[index * 2], cardClick, prefs = prefs)
+                        card(text = collectionsArt[(index * 2) + 1], residsArt[(index * 2) + 1], cardClick, prefs = prefs)
+
+
+                    }
+                }
+            }else{
+                items(collectionsPhoto.size / 2) { index ->
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)) {
+                        card(text = collectionsPhoto[index * 2], residsPhoto[index * 2], cardClick, prefs = prefs)
+                        card(text = collectionsPhoto[(index * 2) + 1], residsPhoto[(index * 2) + 1], cardClick, prefs = prefs)
+                    }
+                }
             }
         }
     }
 }
+
 @Composable
-fun bottombar(){
-    Row(modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colors.background)) {
-        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(200.dp).padding(5.dp)) {
+fun card(text: String, resid: Int, click: (input: String) -> Unit, prefs: SharedPreferences){
+    //val context = LocalContext.current
+    val collections = prefs.getString("collections", "none")
+
+    val collectionArray = collections?.split(",")
+    val checked = remember { mutableStateOf(false) }
+    collectionArray?.forEach {
+         if (it == text) checked.value = true
+    }
+
+    Card(modifier = Modifier
+        .padding(5.dp)
+        .clickable {
+            click(text)
+        }) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box() {
+                Image(
+                    painter = painterResource(id = resid), contentDescription = "Hello",
+                    modifier = Modifier
+                        .size(190.dp)
+                        .padding(10.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                )
+                Box(modifier = Modifier.offset(x = 155.dp, y = 10.dp)) {
+                    CustomCheckbox(click = {text ->
+                        with(prefs.edit()){
+                            val collectionsNew = "$collections,$text"
+                            putString("collections", collectionsNew)
+                            apply()
+                        }
+                    }, size = 25.dp, isChecked = checked.value, collection = text)
+                }
+            }
+            Text(text = text, modifier = Modifier.padding(vertical = 5.dp))
+        }
+    }
+}
+@Composable
+fun bottombar(artContext: MutableState<Boolean>){
+    var context = LocalContext.current
+
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .background(color = MaterialTheme.colors.background)) {
+        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .width(200.dp)
+            .padding(5.dp)
+            .clip(
+                RoundedCornerShape(3.dp)
+            )
+            .clickable {
+                artContext.value = true;
+            }) {
             Image(painter = painterResource(id = R.drawable.ic_baseline_palette_24), contentDescription = "Ai Art", modifier = Modifier.size(40.dp))
             Text(text = "Ai Art")
         }
-        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(200.dp).padding(5.dp)) {
+        Column( horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .width(200.dp)
+            .padding(5.dp)
+            .clip(
+                RoundedCornerShape(3.dp)
+            )
+            .clickable {
+                artContext.value = false;
+            }) {
             Image(painter = painterResource(id = R.drawable.ic_baseline_camera_alt_24), contentDescription = "Photography", modifier = Modifier.size(40.dp))
             Text(text = "Photography")
         }
@@ -171,11 +266,7 @@ fun bottombar(){
 fun topbar(prefs: SharedPreferences, collection: String) {
     val time = remember {
         mutableStateOf(
-            if (prefs.getString(
-                    "collection",
-                    "none"
-                ) == collection
-            ) prefs.getString("time", "Never") else "Never"
+            prefs.getString("time", "Never")
         )
     }
     val expanded = remember { mutableStateOf(false) }
@@ -248,11 +339,11 @@ fun topbar(prefs: SharedPreferences, collection: String) {
     }
 }
 @Composable
-fun imageScreen( backButton: () -> Unit, cardClick: () -> Unit){
+fun imageScreen(collection: String, backButton: () -> Unit, cardClick: () -> Unit) {
 
     val context = LocalContext.current
 
-    Column() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Button(modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
@@ -266,7 +357,7 @@ fun imageScreen( backButton: () -> Unit, cardClick: () -> Unit){
             )
             Text(text = "Back", color = Color.White)
         }
-            }
+        Text(text = collection, modifier = Modifier.padding(vertical = 5.dp))
 //
 //            val url = "https://jsonplaceholder.typicode.com/users"
 //            val queue = Volley.newRequestQueue(context);
@@ -282,34 +373,29 @@ fun imageScreen( backButton: () -> Unit, cardClick: () -> Unit){
 //            queue.add(request)
 
 
-            LazyColumn() {
-                items(9) { index ->
-                    Row() {
-                        ImgCard(cardClick, R.drawable.ic_opp)
-                        ImgCard(cardClick, R.drawable.ic_opp)
-                    }
+        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+            items(9) { index ->
+                Row() {
+                    ImgCard(cardClick, R.drawable.ic_opp)
+                    ImgCard(cardClick, R.drawable.ic_opp)
                 }
             }
         }
+    }
+}
 
 @Composable
-fun CustomCheckbox(click: (Boolean) -> Unit, size: Dp, prefs: SharedPreferences, collection: String){
-    val isCheck = remember { mutableStateOf(
-        if (prefs.getString("collection", "none") == collection) {
-            prefs.getBoolean("checked", false)
-        }else{
-            false
-        }
-    ) }
+fun CustomCheckbox(click: (String) -> Unit, size: Dp, isChecked: Boolean, collection: String){
+    val isCheck = remember { mutableStateOf(isChecked) }
     Box(
         modifier = Modifier
             .size(size)
-            .clip(RoundedCornerShape(3.dp))
+            .clip(RoundedCornerShape(2.dp))
             .border(3.dp, color = MaterialTheme.colors.primary, RoundedCornerShape(3.dp))
             .background(if (isCheck.value) MaterialTheme.colors.primary else Color.Transparent)
             .clickable {
                 isCheck.value = !isCheck.value
-                click(isCheck.value)
+                click(collection)
             }
     ) {
         if(isCheck.value)
@@ -337,48 +423,10 @@ fun setWallpaper(resid: Int, context: Context){
     }
 }
 
-
-@Composable
-fun card(text: String, resid: Int, click: (input: String) -> Unit){
-    //val context = LocalContext.current
-
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-    ) {
-        Row(modifier = Modifier
-           // .background(MaterialTheme.colors.primary)
-            .clickable {
-                click(text)
-            }, horizontalArrangement = Arrangement.Center) {
-            Text(
-                text = text,
-                Modifier
-                    .fillMaxWidth(0.6f)
-                    .padding(vertical = 30.dp)
-                    .padding(horizontal = 15.dp),
-                textAlign = TextAlign.Center,
-                fontSize = 30.sp
-            )
-                Image(
-                    painter = painterResource(id = resid),
-                    contentDescription = "Collection Image",
-                    modifier = Modifier
-                        .size(150.dp)
-                        .padding(10.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                )
-
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     WallpaperjetpackTheme {
-        bottombar()
+       // bottombar()
     }
 }
